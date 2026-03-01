@@ -5,10 +5,32 @@ Kør: python app.py
 """
 
 import os
+import threading
 from flask import Flask, jsonify, render_template, request
-from database import get_conn
+from database import get_conn, create_schema
 
 app = Flask(__name__)
+
+
+def _auto_fetch():
+    """Kør fetch_data + categorize hvis databasen er tom (første gang på Railway)."""
+    try:
+        conn = get_conn()
+        count = conn.execute("SELECT COUNT(*) FROM afstemning").fetchone()[0]
+        conn.close()
+        if count == 0:
+            print("[init] Database er tom – starter datahentning i baggrunden...")
+            import fetch_data
+            import categorize
+            fetch_data.main()
+            categorize.main()
+            print("[init] Datahentning færdig!")
+    except Exception as e:
+        print(f"[init] Fejl under datahentning: {e}")
+
+
+create_schema()
+threading.Thread(target=_auto_fetch, daemon=True).start()
 
 
 # ---------------------------------------------------------------------------
