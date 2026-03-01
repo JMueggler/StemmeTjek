@@ -21,9 +21,7 @@ def _auto_fetch():
         if count == 0:
             print("[init] Database er tom – starter datahentning i baggrunden...")
             import fetch_data
-            import categorize
             fetch_data.main()
-            categorize.main()
             print("[init] Datahentning færdig!")
     except Exception as e:
         print(f"[init] Fejl under datahentning: {e}")
