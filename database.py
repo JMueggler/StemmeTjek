@@ -1,7 +1,10 @@
 import sqlite3
 import os
 
-DB_PATH = os.path.join(os.path.dirname(__file__), "folketinget.db")
+if os.path.isdir("/data"):
+    DB_PATH = "/data/folketinget.db"
+else:
+    DB_PATH = os.path.join(os.path.dirname(__file__), "folketinget.db")
 
 
 def get_conn():
