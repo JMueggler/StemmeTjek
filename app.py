@@ -55,6 +55,11 @@ def index():
     return render_template("index.html")
 
 
+@app.route("/matematik")
+def matematik():
+    return render_template("matematik.html")
+
+
 # ---------------------------------------------------------------------------
 # API: Kategorier
 # ---------------------------------------------------------------------------

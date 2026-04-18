@@ -1,0 +1,472 @@
+<!DOCTYPE html>
+<html lang="da">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Matematik med Mia</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', Arial, sans-serif;
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      overflow: hidden;
+    }
+
+    .game-container {
+      background: white;
+      border-radius: 30px;
+      padding: 30px;
+      max-width: 600px;
+      width: 100%;
+      text-align: center;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+      position: relative;
+    }
+
+    .title {
+      font-size: 2.2rem;
+      color: #764ba2;
+      margin-bottom: 5px;
+      font-weight: 800;
+    }
+
+    .mascot {
+      font-size: 4rem;
+      animation: bounce 2s infinite;
+      display: inline-block;
+      margin: 10px 0;
+    }
+
+    @keyframes bounce {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-10px); }
+    }
+
+    .score-bar {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: #f0e6ff;
+      border-radius: 20px;
+      padding: 10px 20px;
+      margin: 15px 0;
+      font-size: 1.1rem;
+      font-weight: 700;
+      color: #764ba2;
+    }
+
+    .stars-display {
+      font-size: 1.5rem;
+      letter-spacing: 3px;
+    }
+
+    .question-box {
+      background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+      border-radius: 20px;
+      padding: 25px;
+      margin: 20px 0;
+    }
+
+    .visual-helpers {
+      font-size: 2.5rem;
+      min-height: 60px;
+      margin-bottom: 15px;
+      line-height: 1.3;
+      letter-spacing: 3px;
+    }
+
+    .question-text {
+      font-size: 3rem;
+      font-weight: 900;
+      color: #333;
+      margin: 10px 0;
+    }
+
+    .answers {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 15px;
+      margin: 20px 0;
+    }
+
+    .answer-btn {
+      background: white;
+      border: 4px solid #e0c0ff;
+      border-radius: 20px;
+      padding: 20px;
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #555;
+      cursor: pointer;
+      transition: all 0.15s ease;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+
+    .answer-btn:hover {
+      transform: scale(1.05);
+      border-color: #764ba2;
+      background: #f5eeff;
+    }
+
+    .answer-btn.correct {
+      background: #c8f7c5;
+      border-color: #2ecc71;
+      color: #27ae60;
+      transform: scale(1.08);
+    }
+
+    .answer-btn.wrong {
+      background: #fde8e8;
+      border-color: #e74c3c;
+      color: #c0392b;
+      transform: scale(0.95);
+    }
+
+    .feedback {
+      font-size: 2rem;
+      font-weight: 800;
+      min-height: 60px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+    }
+
+    .feedback.correct { color: #27ae60; }
+    .feedback.wrong   { color: #e74c3c; }
+
+    .next-btn {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 15px 40px;
+      font-size: 1.4rem;
+      font-weight: 800;
+      cursor: pointer;
+      margin-top: 10px;
+      transition: transform 0.15s;
+      display: none;
+    }
+
+    .next-btn:hover { transform: scale(1.05); }
+
+    .level-select {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 15px;
+      flex-wrap: wrap;
+    }
+
+    .level-btn {
+      background: white;
+      border: 3px solid #e0c0ff;
+      border-radius: 15px;
+      padding: 8px 18px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      color: #764ba2;
+      transition: all 0.15s;
+    }
+
+    .level-btn.active,
+    .level-btn:hover {
+      background: #764ba2;
+      color: white;
+      border-color: #764ba2;
+    }
+
+    /* Confetti particles */
+    .confetti-container {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none;
+      z-index: 999;
+    }
+
+    .confetti-piece {
+      position: absolute;
+      width: 12px;
+      height: 12px;
+      border-radius: 50%;
+      animation: confetti-fall linear forwards;
+    }
+
+    @keyframes confetti-fall {
+      0%   { transform: translateY(-20px) rotate(0deg); opacity: 1; }
+      100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+    }
+
+    /* Win screen */
+    .win-screen {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 15px;
+    }
+
+    .win-screen.visible { display: flex; }
+
+    .win-emoji { font-size: 5rem; animation: bounce 1s infinite; }
+
+    .win-title {
+      font-size: 2.5rem;
+      font-weight: 900;
+      color: #764ba2;
+    }
+
+    .win-score {
+      font-size: 1.5rem;
+      color: #555;
+    }
+
+    .play-again-btn {
+      background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+      color: white;
+      border: none;
+      border-radius: 20px;
+      padding: 18px 50px;
+      font-size: 1.5rem;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s;
+    }
+
+    .play-again-btn:hover { transform: scale(1.05); }
+
+    .main-content { width: 100%; }
+  </style>
+</head>
+<body>
+
+<div class="confetti-container" id="confettiContainer"></div>
+
+<div class="game-container">
+
+  <!-- Main game -->
+  <div class="main-content" id="mainContent">
+    <div class="title">Matematik med Mia</div>
+    <div class="mascot" id="mascot">🦄</div>
+
+    <div class="score-bar">
+      <div>Spørgsmål: <span id="qNum">1</span> / 10</div>
+      <div class="stars-display" id="starsDisplay">☆☆☆☆☆</div>
+      <div>Point: <span id="score">0</span></div>
+    </div>
+
+    <div class="level-select">
+      <button class="level-btn active" onclick="setLevel(1)">Plus ➕</button>
+      <button class="level-btn" onclick="setLevel(2)">Minus ➖</button>
+      <button class="level-btn" onclick="setLevel(3)">Begge 🎯</button>
+    </div>
+
+    <div class="question-box">
+      <div class="visual-helpers" id="visualHelpers"></div>
+      <div class="question-text" id="questionText"></div>
+    </div>
+
+    <div class="answers" id="answers"></div>
+
+    <div class="feedback" id="feedback"></div>
+    <button class="next-btn" id="nextBtn" onclick="nextQuestion()">Næste ➡️</button>
+  </div>
+
+  <!-- Win screen -->
+  <div class="win-screen" id="winScreen">
+    <div class="win-emoji" id="winEmoji">🏆</div>
+    <div class="win-title" id="winTitle"></div>
+    <div class="win-score" id="winScore"></div>
+    <button class="play-again-btn" onclick="startGame()">Spil igen! 🎮</button>
+  </div>
+
+</div>
+
+<script>
+  const MASCOTS = ['🦄','🐼','🦊','🐸','🦁','🐨','🦋','🐙'];
+  const EMOJIS  = ['🍎','🍊','🍋','🍇','🍓','⭐','🌸','🎈','🍭','🐥'];
+  const CORRECT_MSGS = ['Flot! 🌟','Super! ⭐','Ja! 🎉','Rigtigt! 🏆','Fantastisk! 🦄','Godt klaret! 🌈','Hurra! 🎊','Perfekt! 💫'];
+  const WRONG_MSGS   = ['Prøv igen! 💪','Ikke helt... 🤔','Næsten! 🙂','Øv, prøv næste! 😊'];
+  const CONFETTI_COLORS = ['#667eea','#764ba2','#f093fb','#f5576c','#ffecd2','#fcb69f','#a8edea','#fed6e3'];
+
+  let level = 1;
+  let qIndex = 0;
+  let score = 0;
+  let answered = false;
+  let currentAnswer = 0;
+  let totalQuestions = 10;
+  let mascotEmoji = '🦄';
+
+  function setLevel(l) {
+    level = l;
+    document.querySelectorAll('.level-btn').forEach((b, i) => {
+      b.classList.toggle('active', i === l - 1);
+    });
+    startGame();
+  }
+
+  function startGame() {
+    qIndex = 0;
+    score = 0;
+    mascotEmoji = MASCOTS[Math.floor(Math.random() * MASCOTS.length)];
+    document.getElementById('mascot').textContent = mascotEmoji;
+    document.getElementById('mainContent').style.display = '';
+    document.getElementById('winScreen').classList.remove('visible');
+    updateScore();
+    generateQuestion();
+  }
+
+  function generateQuestion() {
+    answered = false;
+    document.getElementById('feedback').textContent = '';
+    document.getElementById('feedback').className = 'feedback';
+    document.getElementById('nextBtn').style.display = 'none';
+
+    // Pick numbers based on level
+    let a, b, op;
+    if (level === 1) {
+      a = rand(1, 9); b = rand(1, 10 - a); op = '+';
+    } else if (level === 2) {
+      a = rand(2, 10); b = rand(1, a); op = '-';
+    } else {
+      op = Math.random() < 0.5 ? '+' : '-';
+      if (op === '+') { a = rand(1, 9); b = rand(1, 10 - a); }
+      else            { a = rand(2, 10); b = rand(1, a); }
+    }
+
+    currentAnswer = op === '+' ? a + b : a - b;
+
+    // Visual emoji helpers
+    const emoji = EMOJIS[Math.floor(Math.random() * EMOJIS.length)];
+    let visual = '';
+    if (op === '+') {
+      visual = emoji.repeat(a) + '  +  ' + emoji.repeat(b);
+    } else {
+      visual = emoji.repeat(a) + '  –  ' + emoji.repeat(b);
+    }
+    document.getElementById('visualHelpers').textContent = visual;
+    document.getElementById('questionText').textContent = `${a} ${op === '+' ? '+' : '–'} ${b} = ?`;
+
+    // Generate 4 unique answer options
+    const options = new Set([currentAnswer]);
+    while (options.size < 4) {
+      const wrong = currentAnswer + (Math.random() < 0.5 ? 1 : -1) * rand(1, 3);
+      if (wrong >= 0 && wrong <= 20 && wrong !== currentAnswer) options.add(wrong);
+    }
+    const shuffled = [...options].sort(() => Math.random() - 0.5);
+
+    const container = document.getElementById('answers');
+    container.innerHTML = '';
+    shuffled.forEach(opt => {
+      const btn = document.createElement('button');
+      btn.className = 'answer-btn';
+      btn.textContent = opt;
+      btn.onclick = () => checkAnswer(opt, btn);
+      container.appendChild(btn);
+    });
+
+    document.getElementById('qNum').textContent = qIndex + 1;
+  }
+
+  function checkAnswer(val, btn) {
+    if (answered) return;
+    answered = true;
+
+    const allBtns = document.querySelectorAll('.answer-btn');
+    allBtns.forEach(b => {
+      if (parseInt(b.textContent) === currentAnswer) b.classList.add('correct');
+    });
+
+    const fb = document.getElementById('feedback');
+    if (val === currentAnswer) {
+      btn.classList.add('correct');
+      score++;
+      fb.textContent = CORRECT_MSGS[Math.floor(Math.random() * CORRECT_MSGS.length)];
+      fb.className = 'feedback correct';
+      launchConfetti();
+      document.getElementById('mascot').style.animation = 'none';
+      setTimeout(() => document.getElementById('mascot').style.animation = '', 100);
+    } else {
+      btn.classList.add('wrong');
+      fb.textContent = WRONG_MSGS[Math.floor(Math.random() * WRONG_MSGS.length)];
+      fb.className = 'feedback wrong';
+    }
+
+    updateScore();
+
+    qIndex++;
+    if (qIndex >= totalQuestions) {
+      setTimeout(showWinScreen, 1500);
+    } else {
+      document.getElementById('nextBtn').style.display = 'inline-block';
+    }
+  }
+
+  function nextQuestion() {
+    generateQuestion();
+  }
+
+  function updateScore() {
+    document.getElementById('score').textContent = score;
+    const filled = Math.round((score / totalQuestions) * 5);
+    document.getElementById('starsDisplay').textContent =
+      '★'.repeat(filled) + '☆'.repeat(5 - filled);
+  }
+
+  function showWinScreen() {
+    document.getElementById('mainContent').style.display = 'none';
+    const ws = document.getElementById('winScreen');
+    ws.classList.add('visible');
+
+    const pct = score / totalQuestions;
+    let emoji, title;
+    if (pct >= 0.9)      { emoji = '🏆'; title = 'Mesterklasse! Du er fantastisk!'; }
+    else if (pct >= 0.7) { emoji = '🌟'; title = 'Rigtig flot klaret!'; }
+    else if (pct >= 0.5) { emoji = '😊'; title = 'God indsats! Prøv igen!'; }
+    else                 { emoji = '💪'; title = 'Øv lidt mere, du klarer det!'; }
+
+    document.getElementById('winEmoji').textContent = emoji;
+    document.getElementById('winTitle').textContent = title;
+    document.getElementById('winScore').textContent = `Du fik ${score} ud af ${totalQuestions} rigtige! ${'⭐'.repeat(score)}`;
+
+    launchConfetti(80);
+  }
+
+  function launchConfetti(count = 30) {
+    const container = document.getElementById('confettiContainer');
+    for (let i = 0; i < count; i++) {
+      const piece = document.createElement('div');
+      piece.className = 'confetti-piece';
+      piece.style.cssText = `
+        left: ${Math.random() * 100}%;
+        top: -20px;
+        background: ${CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)]};
+        width: ${rand(8, 16)}px;
+        height: ${rand(8, 16)}px;
+        animation-duration: ${(Math.random() * 2 + 1.5).toFixed(1)}s;
+        animation-delay: ${(Math.random() * 0.5).toFixed(2)}s;
+        border-radius: ${Math.random() > 0.5 ? '50%' : '2px'};
+      `;
+      container.appendChild(piece);
+      piece.addEventListener('animationend', () => piece.remove());
+    }
+  }
+
+  function rand(min, max) {
+    return Math.floor(Math.random() * (max - min + 1)) + min;
+  }
+
+  // Start!
+  startGame();
+</script>
+</body>
+</html>
